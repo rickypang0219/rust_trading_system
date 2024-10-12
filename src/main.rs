@@ -9,7 +9,7 @@ use websockets::price_data::listen_coins_limit_prices;
 mod execution;
 mod management;
 mod shared;
-use shared::aws_client::get_config;
+use shared::aws_client::get_binance_api_key;
 
 #[derive(Deserialize, Debug)]
 struct SignalQuery {

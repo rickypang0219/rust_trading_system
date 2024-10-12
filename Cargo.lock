@@ -105,6 +105,29 @@ dependencies = [
 ]
 
 [[package]]
+name = "aws-sdk-ssm"
+version = "0.12.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "39f84c177f848aa5bd3b195697519316c23e03b158f4d223b850a7fb691935a0"
+dependencies = [
+ "aws-endpoint",
+ "aws-http",
+ "aws-sig-auth",
+ "aws-smithy-async",
+ "aws-smithy-client",
+ "aws-smithy-http",
+ "aws-smithy-http-tower",
+ "aws-smithy-json",
+ "aws-smithy-types",
+ "aws-types",
+ "bytes",
+ "fastrand 1.9.0",
+ "http 0.2.12",
+ "tokio-stream",
+ "tower",
+]
+
+[[package]]
 name = "aws-sdk-sso"
 version = "0.12.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -231,6 +254,8 @@ dependencies = [
  "once_cell",
  "percent-encoding",
  "pin-project",
+ "tokio",
+ "tokio-util",
  "tracing",
 ]
 
@@ -1422,6 +1447,7 @@ name = "rust_order"
 version = "0.1.0"
 dependencies = [
  "aws-config",
+ "aws-sdk-ssm",
  "aws-types",
  "axum",
  "futures",
