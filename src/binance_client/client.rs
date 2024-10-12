@@ -4,8 +4,6 @@ use reqwest::Client;
 use serde::{Deserialize, Serialize};
 use sha2::Sha256;
 
-use crate::shared::timestamp;
-
 type HmacSha256 = Hmac<Sha256>;
 
 #[derive(Serialize, Deserialize, Clone)]
@@ -15,7 +13,6 @@ pub struct Order {
     #[serde(rename = "type")]
     order_type: String,
     quantity: f64,
-    timestamp: u64,
     signature: String,
 }
 
@@ -85,16 +82,14 @@ impl BinanceClient {
     ) -> Result<serde_json::Value, Box<dyn std::error::Error>> {
         let url: String = format!("{}{}", BASE_URL, "/order");
         let params = format!(
-            "symbol={}&side={}&type={}&quantity={}&timestamp={}",
-            order.symbol, order.side, order.order_type, order.quantity, order.timestamp
+            "symbol={}&side={}&type={}&quantity={}",
+            order.symbol, order.side, order.order_type, order.quantity
         );
 
         let signature = self.generate_signature(params)?;
-        let timestamp: u64 = timestamp::get_current_timestamp_ms();
 
         let order_with_signature = Order {
             signature,
-            timestamp,
             ..order.clone()
         };
         let order_response = self

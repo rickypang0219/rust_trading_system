@@ -6,6 +6,11 @@ use tokio::join;
 mod websockets;
 use websockets::price_data::listen_coins_limit_prices;
 
+mod execution;
+mod management;
+mod shared;
+use shared::aws_client::get_config;
+
 #[derive(Deserialize, Debug)]
 struct SignalQuery {
     symbol: String,
@@ -26,7 +31,6 @@ async fn handle_signal(Query(order): Query<SignalQuery>) {
 async fn main() {
     let app = Router::new().route("/order", post(handle_signal));
 
-    // Define the address to listen on
     let addr = SocketAddr::from(([127, 0, 0, 1], 8000));
     println!("Listening on http://{}", addr);
 
