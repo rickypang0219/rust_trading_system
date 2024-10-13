@@ -1443,7 +1443,7 @@ dependencies = [
 ]
 
 [[package]]
-name = "rust_order"
+name = "rust_trading_system"
 version = "0.1.0"
 dependencies = [
  "aws-config",
