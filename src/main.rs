@@ -1,15 +1,22 @@
-use axum::{extract::Query, routing::post, Router};
+use axum::{
+    extract::{Query, State},
+    http::StatusCode,
+    response::IntoResponse,
+    routing::{get, post},
+    Json, Router,
+};
 use serde::Deserialize;
+use std::collections::HashMap;
 use std::net::SocketAddr;
+use std::sync::Arc;
 use tokio::join;
-
 mod websockets;
-use websockets::price_data::listen_coins_limit_prices;
+use websockets::price_data::listen_coins_book_prices;
+use websockets::structs::BestPrices;
 
 mod execution;
 mod management;
 mod shared;
-use shared::aws_client::get_binance_api_key;
 
 #[derive(Deserialize, Debug)]
 struct SignalQuery {
@@ -27,9 +34,24 @@ async fn handle_signal(Query(order): Query<SignalQuery>) {
     );
 }
 
+async fn get_book_ticker(
+    State(book_ticker): State<Arc<tokio::sync::Mutex<HashMap<String, BestPrices>>>>,
+) -> impl IntoResponse {
+    let book_ticker = book_ticker.lock().await;
+
+    println!("GET /bookTicker - Status: {}", StatusCode::OK);
+
+    (StatusCode::OK, Json(book_ticker.clone()))
+}
+
 #[tokio::main]
 async fn main() {
-    let app = Router::new().route("/order", post(handle_signal));
+    let book_ticker: Arc<tokio::sync::Mutex<HashMap<String, BestPrices>>> =
+        Arc::new(tokio::sync::Mutex::new(HashMap::new()));
+    let app = Router::new()
+        .route("/bookTicker", get(get_book_ticker))
+        .route("/order", post(handle_signal))
+        .with_state(book_ticker.clone());
 
     let addr = SocketAddr::from(([127, 0, 0, 1], 8000));
     println!("Listening on http://{}", addr);
@@ -42,7 +64,9 @@ async fn main() {
             }
         },
         async {
-            listen_coins_limit_prices().await;
+            if let Err(e) = listen_coins_book_prices(book_ticker).await {
+                eprintln!("WebSocket error: {:?}", e);
+            }
         }
     );
 }
