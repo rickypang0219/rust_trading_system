@@ -2,6 +2,7 @@ use futures::StreamExt;
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 use std::sync::Arc;
+use tokio::time;
 use tokio_tungstenite::connect_async;
 use tokio_tungstenite::tungstenite::Message;
 
@@ -33,7 +34,7 @@ struct BookTicker {
     pub event_time: u64,
 }
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct BookTickerStream {
     pub book_ticker: Arc<tokio::sync::Mutex<HashMap<String, BestPrices>>>,
 }
@@ -76,5 +77,16 @@ impl BookTickerStream {
             }
         }
         Ok(())
+    }
+
+    pub async fn show_bookticker(&self) {
+        loop {
+            time::sleep(time::Duration::new(1800, 0)).await;
+            let book_ticker = self.book_ticker.lock().await;
+            println!("Current Book Ticker:");
+            for (symbol, prices) in book_ticker.iter() {
+                println!("{}: Bid: {}, Ask: {}", symbol, prices.bid, prices.ask);
+            }
+        }
     }
 }
