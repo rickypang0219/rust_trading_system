@@ -1,4 +1,4 @@
-use futures::StreamExt;
+use futures::{SinkExt, StreamExt};
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 use std::sync::Arc;
@@ -46,35 +46,52 @@ impl BookTickerStream {
     }
 
     pub async fn listen_coins_book_prices(&self) -> Result<(), Box<dyn std::error::Error + Send>> {
-        let url: String = format!("wss://fstream.binance.com/ws/!bookTicker",);
-        let (ws_stream, _) = connect_async(&url).await.expect("Failed to connect!");
-        let (_, mut read) = ws_stream.split();
+        loop {
+            let url: String = format!("wss://fstream.binance.com/ws/!bookTicker",);
+            let (ws_stream, _) = match connect_async(&url).await {
+                Ok(stream) => stream,
+                Err(e) => {
+                    eprintln!("Failed to connect: {}, retrying...", e);
+                    continue; // Retry immediately without delay
+                }
+            };
+            let (mut write, mut read) = ws_stream.split();
+            while let Some(message) = read.next().await {
+                match message {
+                    Ok(Message::Text(text)) => {
+                        let ticker: BookTicker =
+                            serde_json::from_str(&text).expect("JSON was not well format!");
 
-        while let Some(message) = read.next().await {
-            match message {
-                Ok(Message::Text(text)) => {
-                    let ticker: BookTicker =
-                        serde_json::from_str(&text).expect("JSON was not well format!");
+                        let bid: f64 = ticker
+                            .best_bid
+                            .parse::<f64>()
+                            .expect("Failed to parse as f64");
+                        let ask: f64 = ticker
+                            .best_ask
+                            .parse::<f64>()
+                            .expect("Failed to parse as f64");
 
-                    let bid: f64 = ticker
-                        .best_bid
-                        .parse::<f64>()
-                        .expect("Failed to parse as f64");
-                    let ask: f64 = ticker
-                        .best_ask
-                        .parse::<f64>()
-                        .expect("Failed to parse as f64");
-
-                    {
-                        let mut book_ticker = self.book_ticker.lock().await;
-                        book_ticker.insert(ticker.symbol.clone(), BestPrices { bid, ask });
+                        {
+                            let mut book_ticker = self.book_ticker.lock().await;
+                            book_ticker.insert(ticker.symbol.clone(), BestPrices { bid, ask });
+                        }
+                        println!(" Received Book Ticker {:?}", ticker);
+                    }
+                    Ok(Message::Ping(payload)) => {
+                        if let Err(e) = write.send(Message::Pong(payload)).await {
+                            eprintln!("Failed to send Pong response: {}", e);
+                        }
+                    }
+                    Ok(non_text_message) => {
+                        println!("Received Non Text Messages {:?}", non_text_message)
+                    }
+                    Err(e) => {
+                        eprintln!("Error Message {}", e);
+                        break;
                     }
                 }
-                _ => {
-                    println!("Received Non Text Messages!")
-                }
             }
+            eprintln!("Connection lost, retrying immediately...");
         }
-        Ok(())
     }
 }
