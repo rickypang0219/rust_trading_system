@@ -18,7 +18,7 @@ async fn get_ssm_client() -> Result<SsmClient, Box<dyn std::error::Error>> {
     }
 }
 
-pub async fn get_param_as_string(
+async fn get_param_as_string(
     param_name: &str,
 ) -> Result<Option<String>, Box<dyn std::error::Error>> {
     let ssm_client = get_ssm_client().await?;
@@ -38,9 +38,18 @@ pub async fn get_param_as_string(
 }
 
 pub async fn get_binance_api_key() -> Result<Option<String>, Box<dyn std::error::Error>> {
-    let params = get_param_as_string("binance-api-key").await;
-    match params {
-        Ok(api_key) => Ok(api_key),
-        Err(e) => Err(e),
+    match get_param_as_string("binance-api-key").await {
+        Ok(Some(api_key)) => {
+            println!("Using API key {}", api_key);
+            Ok(Some(api_key))
+        }
+        Ok(None) => {
+            println!("No API key founded!");
+            Ok(None)
+        }
+        Err(e) => {
+            eprintln!("Cannot get API key from AWS {}", e);
+            Err(e)
+        }
     }
 }
