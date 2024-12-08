@@ -10,11 +10,8 @@ use std::collections::HashMap;
 use std::net::SocketAddr;
 use std::sync::Arc;
 use tokio::join;
-mod websockets;
-use websockets::price_data::listen_coins_book_prices;
-use websockets::structs::BestPrices;
-
-mod execution;
+mod bookticker_stream;
+use bookticker_stream::bookticker::{BestPrices, BookTickerStream};
 mod management;
 mod shared;
 
@@ -46,12 +43,12 @@ async fn get_book_ticker(
 
 #[tokio::main]
 async fn main() {
-    let book_ticker: Arc<tokio::sync::Mutex<HashMap<String, BestPrices>>> =
-        Arc::new(tokio::sync::Mutex::new(HashMap::new()));
+    let bookticker_stream = BookTickerStream::new();
+    let bookticker = bookticker_stream.book_ticker.clone();
     let app = Router::new()
         .route("/bookTicker", get(get_book_ticker))
         .route("/order", post(handle_signal))
-        .with_state(book_ticker.clone());
+        .with_state(bookticker.clone());
 
     let addr = SocketAddr::from(([127, 0, 0, 1], 8000));
     println!("Listening on http://{}", addr);
@@ -64,7 +61,7 @@ async fn main() {
             }
         },
         async {
-            if let Err(e) = listen_coins_book_prices(book_ticker).await {
+            if let Err(e) = bookticker_stream.listen_coins_book_prices().await {
                 eprintln!("WebSocket error: {:?}", e);
             }
         }

@@ -24,6 +24,7 @@ pub struct BinanceClient {
 }
 
 const BASE_URL: &str = "https://fapi.binance.com/fapi/v1/";
+const LISTEN_KEY_ENDPOINT: &str = "/fapi/v1/listenKey";
 
 impl BinanceClient {
     pub fn new(api_key: String, secret_key: String) -> Self {
@@ -53,6 +54,18 @@ impl BinanceClient {
     async fn get_request(&self, url: String) -> Result<serde_json::Value, reqwest::Error> {
         let result: reqwest::Response = self.client.get(url).send().await?;
         let data: serde_json::Value = result.json::<serde_json::Value>().await?;
+        Ok(data)
+    }
+
+    async fn post_request(&self, url: String) -> Result<serde_json::Value, reqwest::Error> {
+        let result: reqwest::Response = self.client.post(url).send().await?;
+        let data: serde_json::Value = result.json().await?;
+        Ok(data)
+    }
+
+    async fn put_request(&self, url: String) -> Result<serde_json::Value, reqwest::Error> {
+        let result: reqwest::Response = self.client.put(url).send().await?;
+        let data: serde_json::Value = result.json().await?;
         Ok(data)
     }
 
