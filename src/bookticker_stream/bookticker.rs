@@ -38,6 +38,12 @@ pub struct BookTickerStream {
     pub book_ticker: Arc<tokio::sync::Mutex<HashMap<String, BestPrices>>>,
 }
 
+impl Default for BookTickerStream {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
 impl BookTickerStream {
     pub fn new() -> Self {
         BookTickerStream {
@@ -47,7 +53,7 @@ impl BookTickerStream {
 
     pub async fn listen_coins_book_prices(&self) -> Result<(), Box<dyn std::error::Error + Send>> {
         loop {
-            let url: String = format!("wss://fstream.binance.com/ws/!bookTicker",);
+            let url: String = "wss://fstream.binance.com/ws/!bookTicker".to_string();
             let (ws_stream, _) = match connect_async(&url).await {
                 Ok(stream) => stream,
                 Err(e) => {
