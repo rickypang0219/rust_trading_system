@@ -444,7 +444,7 @@ dependencies = [
  "serde_json",
  "serde_qs",
  "serde_repr",
- "thiserror",
+ "thiserror 1.0.64",
  "tokio",
  "tokio-tungstenite",
  "url",
@@ -1596,8 +1596,8 @@ dependencies = [
  "hex",
  "hmac",
  "hyper 0.14.30",
- "ring 0.17.8",
  "reqwest 0.12.8",
+ "ring 0.17.8",
  "serde",
  "serde_json",
  "sha2",
@@ -1824,7 +1824,7 @@ checksum = "0431a35568651e363364210c91983c1da5eb29404d9f0928b67d4ebcfa7d330c"
 dependencies = [
  "percent-encoding",
  "serde",
- "thiserror",
+ "thiserror 1.0.64",
 ]
 
 [[package]]
