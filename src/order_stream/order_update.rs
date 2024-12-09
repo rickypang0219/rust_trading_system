@@ -1,7 +1,7 @@
 use crate::binance_client::client::BinanceClient;
 use reqwest;
-use tokio_tungstenite::connect_async;
-use tokio_tungstenite::tungstenite::Message;
+
+
 const USER_DATA_WS: &str = "wss://fstream.binance.com/ws/";
 const KEEP_ALIVE_INTERVAL: u64 = 1800;
 
