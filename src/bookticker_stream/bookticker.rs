@@ -82,7 +82,6 @@ impl BookTickerStream {
                             let mut book_ticker = self.book_ticker.lock().await;
                             book_ticker.insert(ticker.symbol.clone(), BestPrices { bid, ask });
                         }
-                        println!(" Received Book Ticker {:?}", ticker);
                     }
                     Ok(Message::Ping(payload)) => {
                         if let Err(e) = write.send(Message::Pong(payload)).await {
@@ -104,7 +103,7 @@ impl BookTickerStream {
 
     pub async fn show_bookticker(&self) {
         loop {
-            time::sleep(time::Duration::new(1800, 0)).await;
+            time::sleep(time::Duration::new(300, 0)).await;
             let book_ticker = self.book_ticker.lock().await;
             println!("Current Book Ticker:");
             for (symbol, prices) in book_ticker.iter() {
