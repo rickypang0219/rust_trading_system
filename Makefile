@@ -10,5 +10,3 @@ fix:
 	npm run format
 	npm run lint:fix
 
-# Default target
-.DEFAULT_GOAL := check

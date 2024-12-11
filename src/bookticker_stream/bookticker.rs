@@ -78,9 +78,11 @@ impl BookTickerStream {
                             .parse::<f64>()
                             .expect("Failed to parse as f64");
 
-                        {
-                            let mut book_ticker = self.book_ticker.lock().await;
-                            book_ticker.insert(ticker.symbol.clone(), BestPrices { bid, ask });
+                        let mut book_ticker = self.book_ticker.lock().await;
+                        book_ticker.insert(ticker.symbol.clone(), BestPrices { bid, ask });
+
+                        if ticker.symbol == "BTCUSDT" {
+                            println!("received BTC updates {:?}", ticker);
                         }
                     }
                     Ok(Message::Ping(payload)) => {
