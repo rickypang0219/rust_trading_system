@@ -1,17 +1,12 @@
-build:
-	cargo build
-
-run:
-	cargo run
-
-build-release:
-	cargo build --release
-
-run-release:
-	cargo run --release
-
-fix:
-	cargo clippy --fix --allow-dirty
+.PHONY: check fix freeze
 
 check:
-	cargo clippy
+	@echo "Running check..."
+	npm run format:check
+	npm run lint
+
+fix:
+	@echo "Running fix..."
+	npm run format
+	npm run lint:fix
+
